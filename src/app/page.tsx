@@ -1,7 +1,11 @@
 import React from 'react';
+import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import MaplesLogo from '@/components/MaplesLogo';
 import MagneticLink from '@/components/MagneticLink';
+import ShareTestCard, { WhatsAppShareButton } from '@/components/ShareTestCard';
+import { buildPortalMetadata } from '@/lib/share-test';
 import {
   AutoSortingTopicStack,
   ClassFormatExplorer,
@@ -10,6 +14,27 @@ import {
   LivePromptTypewriter,
 } from '@/components/LandingBento';
 import { ArrowRight, UserPlus } from '@phosphor-icons/react/dist/ssr';
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<{ class?: string }>;
+}): Promise<Metadata> {
+  const resolved = searchParams ? await searchParams : undefined;
+  const cls = Number(resolved?.class);
+  if (!Number.isInteger(cls) || cls < 6 || cls > 12) {
+    return {};
+  }
+
+  let headersList: Awaited<ReturnType<typeof headers>> | null = null;
+  try {
+    headersList = await headers();
+  } catch {
+    headersList = null;
+  }
+
+  return buildPortalMetadata(headersList, cls);
+}
 
 const ESSENTIAL_NOTES = [
   {
@@ -60,9 +85,20 @@ export default function HomePage() {
             >
               Key details
             </a>
+            <a
+              href="#share-test"
+              className="hover:text-slate-900 transition-colors duration-200"
+            >
+              Share test
+            </a>
           </nav>
 
           <div className="flex items-center gap-2.5">
+            <WhatsAppShareButton
+              size="sm"
+              label="Share"
+              className="hidden sm:inline-flex"
+            />
             <Link
               href="/student/register"
               className="hidden sm:inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 active:scale-[0.98] transition duration-200"
@@ -122,6 +158,8 @@ export default function HomePage() {
                     <UserPlus size={17} weight="regular" />
                     Register roll number
                   </MagneticLink>
+
+                  <WhatsAppShareButton label="Share Test on WhatsApp" />
                 </div>
 
                 {/* Tabular Monospace Essentials Strip (No Box Soup) */}
@@ -327,6 +365,19 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* WHATSAPP TEST INVITATION & RICH SHARE CARD */}
+        <section
+          id="share-test"
+          className="border-t border-slate-200/60 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-16 sm:pt-20 sm:pb-24"
+        >
+          <div className="mb-8">
+            <p className="font-mono text-xs font-medium text-maple-600 tracking-wider">
+              04 / share test link &amp; details
+            </p>
+          </div>
+          <ShareTestCard />
+        </section>
       </main>
 
       {/* Clean Minimal Footer with Navigation & Campus Attribution (Zero Admin Links) */}
@@ -363,6 +414,12 @@ export default function HomePage() {
             >
               Student sign in
             </Link>
+            <a
+              href="#share-test"
+              className="hover:text-slate-900 transition-colors"
+            >
+              Share on WhatsApp
+            </a>
           </div>
         </div>
       </footer>
